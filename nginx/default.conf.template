@@ -1,0 +1,45 @@
+upstream demo_web_servers {
+    server ${BACKEND_1};
+    server ${BACKEND_2};
+    server ${BACKEND_3};
+}
+upstream lb_metrics {
+    server ${LB_METRICS};
+}
+upstream lb {
+    server ${LB};
+}
+
+server {
+
+    location / {
+        proxy_pass http://lb;
+    }
+
+    location /login {
+        proxy_pass http://demo_web_servers;
+    }
+
+    location /changePassword {
+        proxy_pass http://lb;
+    }
+
+    location /register {
+        proxy_pass http://lb;
+    }
+
+
+    location /nginx_status {
+    stub_status;
+
+    access_log off;
+    # Since running inside a container will allow outside requests
+    #allow 127.0.0.1;
+    #deny all;
+    }
+
+    location /metrics {
+        proxy_pass http://lb_metrics;
+    }
+}
+

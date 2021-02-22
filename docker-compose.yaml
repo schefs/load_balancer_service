@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  nginx:
+    image: "nginx:1.19.7-alpine"
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template
+    environment:
+      BACKEND_1: "server1:8080"
+      BACKEND_2: "server2:8080"
+      BACKEND_3: "server3:8080"
+      LB_METRICS: "loadbalancer:8000"
+      LB: "loadbalancer:8080"
+    ports:
+        - "80:80"
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:0.8.0
+    ports:
+      - "8000:9113"
+    entrypoint:
+      - /usr/bin/exporter
+      - -nginx.scrape-uri
+      - http://nginx/nginx_status
+  loadbalancer:
+    image: "schef/load-balancer-server:v1"
+    environment:
+      BACKEND_POOL: "server1:8080,server2:8080,server3:8080"
+      METRICS_PORT: 8000
+    ports:
+      - "8090:8080"
+
+  server1:
+    image: "schef/demo_web_server:v1"
+    environment:
+      SKIP_SOME_REQUESTS: "false"
+      SERVER_NAME: server_1
+      SERVER_PORT: 8080
+
+  server2:
+    image: "schef/demo_web_server:v1"
+    environment:
+      SKIP_SOME_REQUESTS: "false"
+      SERVER_NAME: server_2
+      SERVER_PORT: 8080
+
+  server3:
+    image: "schef/demo_web_server:v1"
+    environment:
+      SKIP_SOME_REQUESTS: "false"
+      SERVER_NAME: server_3
+      SERVER_PORT: 8080
