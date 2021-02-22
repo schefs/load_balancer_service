@@ -1,18 +1,20 @@
-**LoadBalancer Service**
+#LoadBalancer Service
 
-**/login**
+Python load balancer using aiohttp and async together with nginx all wrapped around containers for best performance for the given task
+
+##/login endpoint**
 
 traffic management on /login using GET request will be handled by NGINX server that will load balance the traffic using basic round-robin method.
 
 client GET request on /login --> Nginx --> backend server number 1/2/3
 
-**/changePassword or /register:**
+##/changePassword or /register endpoint:
 
 traffic management on /changePassword or /register will be handled differently since there is more complexity involved.
 
 client POST request on /changePassword or /register --> Nginx --> Python load balancer (with the business logic inside) --> forward requests to all backend servers
 
-**backend services:**
+##backend services:
     
 Each backend service was writen as an example for a possible (not so good) of a service that may hiccup from time to time.
 It will be controlled using ENV `SKIP_SOME_REQUESTS= "true"/"false"`.
@@ -20,7 +22,7 @@ This will help us to observe the LB service ability to recover from such cases o
 
 In the supplied docker-compose file one of three backend servers `SKIP_SOME_REQUESTS` ENV is set to `true`.
 
-**Load Balance python service:**
+##Load Balance python service:
 
 This is main component managing the more complex actions required by the project.
 it writen mainly using `aiohttp` and `asyncio` to deal with async requests to support the required scale.
@@ -38,7 +40,7 @@ maximum_backoff is set by default to 64 seconds. The appropriate value depends o
 
 
 
-**metrics:**
+##metrics:
 
 Simple nginx metrics can be found under `http://localhost/nginx_status` or in Prometheus format using prometheus exporter under `http://localhost:8000/metrics`
 
@@ -57,7 +59,7 @@ For example:
     Total_domains_failed_counter_total 7.0
     Total_domains_success_counter_total 45.0
 
-**Build guidelines:**
+##Build guidelines:
 
 Nginx is only using a template configuration file injected in runtime so no build is needed for it
 
@@ -71,20 +73,20 @@ or demo backend service:
     cd demo_backend_server
     docker build -t schef/demo_web_server:v1 .
 
-**Running the services**
+##Running the services:
 
-to run the services locally:
+To run the services locally:
     
     docker-compose up -d 
 
-you can go head and try to access the load balancer service for example:
+You can go head and try to access the load balancer service for example:
     
     curl localhost/login
     curl -X POST -d 'username=schef' -d 'password=example' localhost/register
     curl -X POST -d 'username=schef' -d 'password=example' http://localhost/changePassword
 
 
-**Load test this thing using Locust:**
+##Load test this thing using Locust:
     
     You can run a simple banchmark on the services to test the capability
 
@@ -96,7 +98,7 @@ Also, you can find a report file on `locust_load_test/report.html` already ready
 In this report the locust workers where running on the same machine as the web server where running on, 
 so I was experiencing some bottlenecks in terms of high utilization on this local machine tested, but it probably can get even better results when services are spread across multiple machines.
 
-**Cleanup**
+##Cleanup
 
 don't forget to clean up after yourself  and run once services are no longer needed:
     
